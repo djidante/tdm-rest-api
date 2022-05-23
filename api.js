@@ -3,14 +3,11 @@ const { Client } = require('pg')
 const bcrypt = require('bcryptjs')
 
 const client = new Client({
-  user: 'zodkxyvbtetuto',
-  host: 'ec2-63-32-248-14.eu-west-1.compute.amazonaws.com',
-  database: 'd9hqfeeb4rmkqd',
-  password: '72a34be9d59b5adc1732b913655751fc2343e0b900802b769a79bb683bef2f65',
-  port: 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
+    host: process.env.DATABASE_URL,
+    port: 5432,
+    ssl: {
+        rejectUnauthorized: false
+    }
 })
 client.connect()
 
