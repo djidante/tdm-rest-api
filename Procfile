@@ -1,4 +1,1 @@
-"scripts": {
-  "start": "node api.js",
-  "build": "webpack"
-}
+web: node api.js
