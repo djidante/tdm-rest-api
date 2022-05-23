@@ -3,8 +3,7 @@ const { Client } = require('pg')
 const bcrypt = require('bcryptjs')
 
 const client = new Client({
-    host: process.env.DATABASE_URL,
-    port: 5432,
+    connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
