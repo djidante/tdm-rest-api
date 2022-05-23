@@ -17,7 +17,6 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.raw())
 app.use(express.static('public'))
-const port = 8082
 
 app.post('/signup',async function (req, res) {
   const password = await req.body.password
@@ -134,6 +133,6 @@ app.put('/reservations',async function(req,res){
   }
 })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+app.listen(process.env.PORT, () => {
+  console.log(`Example app listening on port $process.env.PORT`)
 })
