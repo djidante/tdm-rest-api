@@ -26,11 +26,12 @@ app.post('/signup',async function (req, res) {
       if (!email) console.log("No email !")
       var phone = parseInt(req.body.phone,10)
       if (!phone) console.log ("No phone !")
-      var query = "INSERT INTO public.users(first_name,last_name,password,email,phone) VALUES ($1,$2,$3,$4,$5)"
+      var query = "INSERT INTO public.users(first_name,last_name,password,email,phone,credential) VALUES ($1,$2,$3,$4,$5,$6)"
       var firstName = req.body.firstName
       var lastName = req.body.lastName
+      var credential = req.body.credential
       try{
-        var result = await client.query(query, [firstName, lastName, hash, email, phone])
+        var result = await client.query(query, [firstName, lastName, hash, email, phone, credential])
         console.log(result)
         res.status(200).json({message: "Success"})
       }
@@ -56,6 +57,28 @@ app.post('/login', async function (req, res) {
         if (bcrypt.compareSync(password, result.rows[0].password)) {
           res.status(200).json({message: "Login successful", userId: result.rows[0].user_id.toString()})
         } else res.status(400).json({message: "Incorrect password"})
+      }
+    } catch (err) {
+      console.log(err)
+      res.status(500).json({message: "Internal server error"})
+    }
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({message: "Error when querying"})
+  }
+})
+
+app.post('/loginWithGoogle', async function (req, res) {
+  const credential = req.body.credential
+  const query = "SELECT * FROM public.users WHERE credential=$1"
+  try {
+    let result = await client.query(query, [credential])
+    try {
+      console.log(result.rows)
+      if (result.rows.length === 0) {
+        res.status(400).json({message: "No corresponding Google Account."})
+      } else {
+        res.status(200).json({message: "Login successful", userId: result.rows[0].user_id.toString()})
       }
     } catch (err) {
       console.log(err)
