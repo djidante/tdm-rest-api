@@ -109,8 +109,8 @@ app.get('/parkings', async function (req, res){
 
 app.get('/parkings/closest', async function (req, res ){
   const query = "SELECT * FROM (SELECT *, \n" +
-      "SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2) \n" +
-      "+ POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance \n" +
+      "SQRT( POW( ( (69.1/1.61) * ('$1' - latitude)), 2) \n" +
+      "+ POW(( (53/1.61) * ('$2' - longitude)), 2)) AS distance \n" +
       "FROM public.parkings) as p, \n" +
       "TO_JSON(ARRAY (SELECT \n" +
       "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
