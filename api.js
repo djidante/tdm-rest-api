@@ -107,6 +107,27 @@ app.get('/parkings', async function (req, res){
   }
 })
 
+app.get('/parkings/closest/:latitude&:longitude', async function (req, res ){
+  const query = "SELECT * FROM (SELECT *, \n" +
+      "SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2) \n" +
+      "+ POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance \n" +
+      "FROM public.parkings) as p, \n" +
+      "TO_JSON(ARRAY (SELECT \n" +
+      "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
+      "\t   FROM public.schedules\n" +
+      "\t  WHERE parking_schedule = parking_id)) as schedule\n" +
+      "FROM public.parkings) \n" +
+      "WHERE distance < 3";
+  try {
+    let result = await client.query(query, [req.params.latitude, req.params.longitude])
+    res.status(200).json({message:"Success", result: result})
+  }
+  catch(err){
+    console.log(err)
+    res.status(500).json({message: "Error when querying"})
+  }
+})
+
 app.get('/reservations/byUser/:userId',async function(req,res){
   const query = "SELECT * FROM public.reservations WHERE user_reservation = $1"
   try {
