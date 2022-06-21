@@ -143,7 +143,7 @@ app.get('/reservations/byUser/:userId',async function(req,res){
 })
 
 app.get('/reservations/byParking/:parkingId',async function(req,res){
-  const query = "SELECT COUNT() as count FROM public.reservations WHERE parking_reservation = $1 AND is_over = 0 GROUP BY *"
+  const query = "SELECT COUNT() as count FROM public.reservations WHERE parking_reservation = $1 AND is_over = 0 GROUP BY count"
   try {
     let result = await client.query(query, [req.params.parkingId])
     res.status(200).json({message:"Success", result: result})
