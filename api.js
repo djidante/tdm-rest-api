@@ -108,6 +108,8 @@ app.get('/parkings', async function (req, res){
 })
 
 app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
+  let latitude = parseFloat(req.params.latitude)
+  let longitude = parseFloat(req.params.longitude)
   const query = "SELECT * FROM (SELECT *, \n" +
       "SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2) \n" +
       "+ POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance \n" +
@@ -119,12 +121,12 @@ app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
       "FROM public.parkings) \n" +
       "WHERE distance < 3";
   try {
-    let result = await client.query(query, [parseFloat(req.params.latitude), parseFloat(req.params.longitude)])
+    let result = await client.query(query, [latitude, longitude])
     res.status(200).json({message:"Success", result: result})
   }
   catch(err){
     console.log(err)
-    res.status(500).json({message: err})
+    res.status(500).json({message: toString(latitude) + " " + toString(longitude) })
   }
 })
 
