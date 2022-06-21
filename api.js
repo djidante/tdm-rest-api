@@ -126,7 +126,7 @@ app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
   }
   catch(err){
     console.log(err)
-    res.status(500).json({message: toString(latitude) + " " + toString(longitude) })
+    res.status(500).json({message: toString(req.params.latitude) + " " + toString(req.params.latitude) })
   }
 })
 
