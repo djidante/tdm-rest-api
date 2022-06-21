@@ -108,6 +108,7 @@ app.get('/parkings', async function (req, res){
 })
 
 app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
+  res.status(500).json({message: toString(req.params.latitude) + " " + toString(req.params.latitude) })/*
   let latitude = parseFloat(req.params.latitude)
   let longitude = parseFloat(req.params.longitude)
   const query = "SELECT * FROM (SELECT *, \n" +
@@ -127,7 +128,7 @@ app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
   catch(err){
     console.log(err)
     res.status(500).json({message: toString(req.params.latitude) + " " + toString(req.params.latitude) })
-  }
+  }*/
 })
 
 app.get('/reservations/byUser/:userId',async function(req,res){
