@@ -119,7 +119,7 @@ app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
       "FROM public.parkings) \n" +
       "WHERE distance < 3";
   try {
-    let result = await client.query(query, [req.params.latitude, req.params.longitude])
+    let result = await client.query(query, [parseFloat(req.params.latitude), parseFloat(req.params.longitude)])
     res.status(200).json({message:"Success", result: result})
   }
   catch(err){
