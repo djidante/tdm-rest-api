@@ -126,7 +126,7 @@ app.get('/parkings/closest', async function (req, res ){
   }
   catch(err){
     console.log(err)
-    res.status(500).json({message: toString(req.query.latitude) + " " + toString(req.query.latitude) })
+    res.status(500).json({message: req.query.latitude) + " " + req.query.latitude) })
   }
 })
 
@@ -150,7 +150,7 @@ app.get('/reservations/byParking/:parkingId',async function(req,res){
   }
   catch(err){
     console.log(err)
-    res.status(500).json({message: "Error when querying"})
+    res.status(500).json({message: err})
   }
 })
 
