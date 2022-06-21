@@ -107,10 +107,9 @@ app.get('/parkings', async function (req, res){
   }
 })
 
-app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
-  res.status(500).json({message: toString(req.params.latitude) + " " + toString(req.params.latitude) })/*
-  let latitude = parseFloat(req.params.latitude)
-  let longitude = parseFloat(req.params.longitude)
+app.get('/parkings/closest', async function (req, res ){
+  let latitude = parseFloat(req.query.latitude)
+  let longitude = parseFloat(req.query.longitude)
   const query = "SELECT * FROM (SELECT *, \n" +
       "SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2) \n" +
       "+ POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance \n" +
@@ -127,7 +126,7 @@ app.get('/parkings/closest/:latitude/:longitude', async function (req, res ){
   }
   catch(err){
     console.log(err)
-    res.status(500).json({message: toString(req.params.latitude) + " " + toString(req.params.latitude) })
+    res.status(500).json({message: toString(req.query.latitude) + " " + toString(req.query.latitude) })
   }*/
 })
 
