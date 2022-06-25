@@ -12,6 +12,7 @@ client.connect()
 
 const bodyParser = require('body-parser')
 const {ssl} = require("pg/lib/defaults");
+const {response} = require("express");
 const app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -26,12 +27,12 @@ app.post('/signup',async function (req, res) {
       if (!email) console.log("No email !")
       var phone = parseInt(req.body.phone,10)
       if (!phone) console.log ("No phone !")
-      var query = "INSERT INTO public.users(first_name,last_name,password,email,phone,credential) VALUES ($1,$2,$3,$4,$5,$6)"
+      var query = "INSERT INTO public.users(first_name,last_name,password,email,phone) VALUES ($1,$2,$3,$4,$5)"
       var firstName = req.body.firstName
       var lastName = req.body.lastName
       var credential = req.body.credential
       try{
-        var result = await client.query(query, [firstName, lastName, hash, email, phone, credential])
+        var result = await client.query(query, [firstName, lastName, hash, email, phone])
         console.log(result)
         res.status(200).json({message: "Success"})
       }
@@ -41,6 +42,21 @@ app.post('/signup',async function (req, res) {
       }
     });
   });
+})
+
+app.post('/addGoogleCredential', async function (req, res) {
+  const userId = req.body.userId
+  const credential = req.body.credential
+  const query = "INSERT INTO public.users (credential) VALUES ($1) WHERE user_id = $2"
+  try {
+    let result = await client.query(query, [credential,userId])
+    console.log(result)
+    res.status(200).json({message: "Success"})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({message: "Error when querying"})
+  }
 })
 
 app.post('/login', async function (req, res) {
