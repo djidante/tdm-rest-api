@@ -163,7 +163,7 @@ app.get('/parkings/advanced', async function (req, res ){
 })
 
 app.get('/reservations/byUser/:userId',async function(req,res){
-  const query = "SELECT * FROM public.reservations WHERE user_reservation = $1"
+  const query = "SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE user_reservation = $1 AND r.parking_reservation = p.parking_id "
   try {
     let result = await client.query(query, [req.params.userId])
     res.status(200).json({message:"Success", result: result})
