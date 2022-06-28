@@ -109,7 +109,7 @@ app.post('/loginWithGoogle', async function (req, res) {
 app.get('/parkings', async function (req, res){
   const query = "SELECT *,\n" +
       "TO_JSON(ARRAY (SELECT \n" +
-      "\t   (day as day,to_char(opening_hour, 'HH24:MI:SS') as opening_hour,to_char(closing_hour,'HH24:MI:SS') as closing_hour)\n" +
+      "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
       "\t   FROM public.schedules\n" +
       "\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "FROM public.parkings"
