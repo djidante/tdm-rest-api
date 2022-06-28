@@ -1,13 +1,15 @@
 const express = require("express")
 const { Client } = require('pg')
+const Maps= require("@googlemaps/google-maps-services-js");
 const bcrypt = require('bcryptjs')
-
-/*const client = new Client({
+const cors = require('cors')
+const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
-})*/
+})
+const mapsClient = new Maps.Client()
 
 client.connect()
 
@@ -18,7 +20,10 @@ const app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.raw())
+app.use(cors())
 app.use(express.static('public'))
+
+
 
 app.post('/signup',async function (req, res) {
   const password = await req.body.password
@@ -133,9 +138,29 @@ app.get('/parkings/advanced', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings WHERE p.price <= $4) as p\n" +
-      "\t\t\t   WHERE p.distance < $3"
+      "\t\t\t   WHERE p.distance <= $3"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude, req.query.maxDistance, req.query.price])
+    let array= result.rows
+    let arrayLength = array.length
+    let destinations = []
+    let origins = [
+      {lat:req.query.latitude,
+        lng:req.query.longitude}
+    ]
+    if (arrayLength>0) {
+      let googleDistanceMatrix = await mapsClient.distancematrix({
+        params: {
+          destinations: JSON.parse(JSON.stringify(destinations)),
+          origins: JSON.parse(JSON.stringify(origins)),
+          key: process.env.MAPS_API_KEY
+        }})
+      for (let i = 0; i<arrayLength; i++){
+        array[i]["distance"]=googleDistanceMatrix.data.rows[0].elements[i].distance.value/1000
+        array[i]["time"]=googleDistanceMatrix.data.rows[0].elements[i].duration.text
+      }
+      result.rows = array.filter(data => data.distance <= req.query.maxDistance)
+    }
     res.status(200).json({message:"Success", result: result})
   }
   catch(err){
@@ -153,9 +178,32 @@ app.get('/parkings/closest', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings) as p\n" +
-      "\t\t\t   WHERE p.distance < 2.20"
+      "\t\t\t   WHERE p.distance <= 3.0"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude])
+    let array= result.rows
+    let arrayLength = array.length
+    let destinations = []
+    let origins = [
+        {lat:req.query.latitude,
+          lng:req.query.longitude}
+    ]
+    for (let i = 0; i<arrayLength;i++){
+      destinations.push([array[i]["latitude"],array[i]["longitude"]])
+    }
+    if (arrayLength>0) {
+      let googleDistanceMatrix = await mapsClient.distancematrix({
+        params: {
+          destinations: JSON.parse(JSON.stringify(destinations)),
+          origins: JSON.parse(JSON.stringify(origins)),
+          key: process.env.MAPS_API_KEY
+        }})
+      for (let i = 0; i<arrayLength; i++){
+        array[i]["distance"]=googleDistanceMatrix.data.rows[0].elements[i].distance.value/1000
+        array[i]["time"]=googleDistanceMatrix.data.rows[0].elements[i].duration.text
+      }
+    }
+    result.rows = array.filter(data => data.distance <= 3.0)
     res.status(200).json({message:"Success", result: result})
   }
   catch(err){
@@ -240,10 +288,6 @@ app.post('/comments', async function(req,res){
   }
 })
 
-app.listen(3001, () => {
-  console.log(`Example app listening on port 3001`)
+app.listen(process.env.PORT, () => {
+    console.log(`Example app listening on port $process.env.PORT`)
 })
-
-// app.listen(process.env.PORT, () => {
-//     console.log(`Example app listening on port $process.env.PORT`)
-// })
