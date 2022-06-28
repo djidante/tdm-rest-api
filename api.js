@@ -2,18 +2,18 @@ const express = require("express")
 const { Client } = require('pg')
 const bcrypt = require('bcryptjs')
 
-const client = new Client({
+/*const client = new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
-})
-/*const client = new Client({
+})*/
+const client = new Client({
     connectionString: "postgres://lstrdndafvniio:d4b280d6ae5379151937c71507f85e170bc8f078d5e75e2b490b846245653aeb@ec2-54-75-184-144.eu-west-1.compute.amazonaws.com:5432/dfo7cvkig7n3nj",
     ssl: {
         rejectUnauthorized: false
     }
-})*/
+})
 client.connect()
 
 const bodyParser = require('body-parser')
@@ -244,11 +244,11 @@ app.post('/comments', async function(req,res){
       res.status(500).json({message:"Failure", error:err})
   }
 })
-//
-// app.listen(3001, () => {
-//   console.log(`Example app listening on port 3001`)
-// })
 
-app.listen(process.env.PORT, () => {
-    console.log(`Example app listening on port $process.env.PORT`)
+app.listen(3001, () => {
+  console.log(`Example app listening on port 3001`)
 })
+
+// app.listen(process.env.PORT, () => {
+//     console.log(`Example app listening on port $process.env.PORT`)
+// })
