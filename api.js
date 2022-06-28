@@ -303,11 +303,13 @@ app.post('/comments', async function(req,res){
   }
 })
 
-app.post('/comments', async function(req,res){
-  const query = "INSERT INTO public.comments (user_comment, parking_comment, comment, comment_timestamp) VALUES" +
-      "($1,$2,$3,NOW())"
+app.post('/evaluations', async function(req,res){
+  const query = "INSERT INTO public.evaluations(user_evaluation, parking_evaluation, evaluation) \n"+
+                "\t VALUES ($1, $2, $3) \n"+
+                "\t ON CONFLICT ON CONSTRAINT evaluation_unicity DO \n"+
+                "\t UPDATE SET evaluation = $3"
   try{
-    let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.comment])
+    let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.evaluation])
     res.status(200).json({message:"Success", result: result})
   }
   catch(err){
