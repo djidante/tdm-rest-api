@@ -36,7 +36,6 @@ app.post('/signup',async function (req, res) {
       var query = "INSERT INTO public.users(first_name,last_name,password,email,phone) VALUES ($1,$2,$3,$4,$5)"
       var firstName = req.body.firstName
       var lastName = req.body.lastName
-      var credential = req.body.credential
       try{
         var result = await client.query(query, [firstName, lastName, hash, email, phone])
         console.log(result)
@@ -118,7 +117,12 @@ app.get('/parkings', async function (req, res){
       "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
       "\t   FROM public.schedules\n" +
       "\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-      "FROM public.parkings"
+      "FROM public.parkings p, (SELECT \n" +
+      "\t \tAVG(evaluation)::numeric(2,1)::text, \n" +
+      "\t \tparking_evaluation \n" +
+      "\t from public.evaluations \n" +
+      "\t GROUP BY parking_evaluation) as e \n" +
+      "\t WHERE p.parking_id = e.parking_evaluation"
   try{
     let result = await client.query(query)
     res.status(200).json({message: "Success", result: result})
@@ -137,8 +141,12 @@ app.get('/parkings/advanced', async function (req, res ){
       "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-      "\t\t\t   FROM public.parkings WHERE p.price <= $4) as p\n" +
-      "\t\t\t   WHERE p.distance <= $3" +
+      "\t\t\t   FROM public.parkings WHERE price <= $4) as p, (SELECT \n" +
+      "\t \t AVG(evaluation)::numeric(2,1)::text, \n" +
+      "\t \t parking_evaluation \n" +
+      "\t from public.evaluations \n" +
+      "\t GROUP BY parking_evaluation) as e \n" +
+      "\t\t\t   WHERE p.distance <= $3 AND p.parking_id = e.parking_evaluation" +
       "\t\t\t   LIMIT 25"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude, req.query.maxDistance, req.query.price])
@@ -178,8 +186,12 @@ app.get('/parkings/closest', async function (req, res ){
       "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-      "\t\t\t   FROM public.parkings) as p\n" +
-      "\t\t\t   WHERE p.distance <= 3.0" +
+      "\t\t\t   FROM public.parkings) as p, (SELECT \n" +
+      "\t \t AVG(evaluation)::numeric(2,1)::text, \n" +
+      "\t \t parking_evaluation \n" +
+      "\t from public.evaluations \n" +
+      "\t GROUP BY parking_evaluation) as e \n" +
+      "\t\t\t   WHERE p.distance <= 3.0 AND p.parking_id = e.parking_evaluation \n" +
       "\t\t\t   LIMIT 25"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude])
@@ -288,6 +300,19 @@ app.post('/comments', async function(req,res){
   catch(err){
       console.log(err)
       res.status(500).json({message:"Failure", error:err})
+  }
+})
+
+app.post('/comments', async function(req,res){
+  const query = "INSERT INTO public.comments (user_comment, parking_comment, comment, comment_timestamp) VALUES" +
+      "($1,$2,$3,NOW())"
+  try{
+    let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.comment])
+    res.status(200).json({message:"Success", result: result})
+  }
+  catch(err){
+    console.log(err)
+    res.status(500).json({message:"Failure", error:err})
   }
 })
 
