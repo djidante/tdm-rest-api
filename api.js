@@ -201,6 +201,7 @@ app.get('/parkings/closest', async function (req, res ){
       for (let i = 0; i<arrayLength; i++){
         array[i]["distance"]=googleDistanceMatrix.data.rows[0].elements[i].distance.value/1000
         array[i]["time"]=googleDistanceMatrix.data.rows[0].elements[i].duration.text
+        array[i]["google_destination"]=googleDistanceMatrix.data.destination_addresses[i]
       }
     }
     result.rows = array.filter(data => data.distance <= 3.0)
