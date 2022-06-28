@@ -138,7 +138,8 @@ app.get('/parkings/advanced', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings WHERE p.price <= $4) as p\n" +
-      "\t\t\t   WHERE p.distance <= $3"
+      "\t\t\t   WHERE p.distance <= $3" +
+      "\t\t\t   LIMIT 25"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude, req.query.maxDistance, req.query.price])
     let array= result.rows
@@ -178,7 +179,8 @@ app.get('/parkings/closest', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings) as p\n" +
-      "\t\t\t   WHERE p.distance <= 3.0"
+      "\t\t\t   WHERE p.distance <= 3.0" +
+      "\t\t\t   LIMIT 25"
   try {
     let result = await client.query(query, [req.query.latitude, req.query.longitude])
     let array= result.rows
