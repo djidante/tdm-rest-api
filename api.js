@@ -115,7 +115,7 @@ app.get('/parkings', async function (req, res){
       "FROM public.parkings"
   try{
     let result = await client.query(query)
-    res.status(200).json({message: "Success", result: result.rows})
+    res.status(200).json({message: "Success", result: result})
   }
   catch(err){
     console.log(err)
