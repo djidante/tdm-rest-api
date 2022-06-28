@@ -109,7 +109,7 @@ app.post('/loginWithGoogle', async function (req, res) {
 app.get('/parkings', async function (req, res){
   const query = "SELECT *,\n" +
       "TO_JSON(ARRAY (SELECT \n" +
-      "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
+      "\t   (day as day,to_char(opening_hour, 'HH24:MI:SS') as opening_hour,to_char(closing_hour,'HH24:MI:SS') as closing_hour)\n" +
       "\t   FROM public.schedules\n" +
       "\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "FROM public.parkings"
@@ -163,7 +163,7 @@ app.get('/parkings/advanced', async function (req, res ){
 })
 
 app.get('/reservations/byUser/:userId',async function(req,res){
-  const query = "SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE user_reservation = $1 AND r.parking_reservation = p.parking_id "
+  const query = "SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE user_reservation = $1 AND is_over = FALSE r.parking_reservation = p.parking_id "
   try {
     let result = await client.query(query, [req.params.userId])
     res.status(200).json({message:"Success", result: result})
@@ -208,6 +208,27 @@ app.put('/reservations',async function(req,res){
   catch(err){
     console.log(err)
     res.status(400).json(err)
+  }
+})
+
+app.get('/comments/:parkingId', async function(req,res){
+  const query = "SELECT * FROM public.comments WHERE parking_comment = $1"
+  try{
+    let result = await client.query(query,[req.params.parkingId])
+    res.status(200).json({message:"Success", result: result})
+
+  }catch(err){
+    console.log(err)
+    res.status(500).json({message: "Error when querying"})
+  }
+})
+
+app.post('/comments', async function(req,res){
+  const query = "INSERT INTO public.comments (user_comment, parking_comment, comment, comment_timestamp) VALUES" +
+      "($1,$2,$3,NOW())"
+  try{
+    let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.comment])
+    res.status(200).json({message:"Success", result: result})
   }
 })
 
