@@ -8,12 +8,7 @@ const bcrypt = require('bcryptjs')
         rejectUnauthorized: false
     }
 })*/
-const client = new Client({
-    connectionString: "postgres://lstrdndafvniio:d4b280d6ae5379151937c71507f85e170bc8f078d5e75e2b490b846245653aeb@ec2-54-75-184-144.eu-west-1.compute.amazonaws.com:5432/dfo7cvkig7n3nj",
-    ssl: {
-        rejectUnauthorized: false
-    }
-})
+
 client.connect()
 
 const bodyParser = require('body-parser')
