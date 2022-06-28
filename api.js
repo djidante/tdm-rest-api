@@ -129,25 +129,6 @@ app.get('/parkings', async function (req, res){
   }
 })
 
-app.get('/parkings/closest', async function (req, res ){
-  const query =
-      "SELECT * FROM (SELECT *, \n" +
-      "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
-      "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
-      "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
-      "\t\t\t\t\t\t\t  FROM public.schedules\n" +
-      "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-      "\t\t\t   FROM public.parkings) as p\n" +
-      "\t\t\t   WHERE p.distance < 2.20"
-  try {
-    let result = await client.query(query, [req.query.latitude, req.query.longitude])
-    res.status(200).json({message:"Success", result: result})
-  }
-  catch(err){
-    console.log(err)
-    res.status(500).json({message: "Error when querying"})
-  }
-})
 app.get('/parkings/advanced', async function (req, res ){
   const query =
       "SELECT * FROM (SELECT *, \n" +
@@ -187,25 +168,7 @@ app.get('/parkings/closest', async function (req, res ){
     res.status(500).json({message: "Error when querying"})
   }
 })
-app.get('/parkings/advanced', async function (req, res ){
-  const query =
-      "SELECT * FROM (SELECT *, \n" +
-      "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
-      "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
-      "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
-      "\t\t\t\t\t\t\t  FROM public.schedules\n" +
-      "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-      "\t\t\t   FROM public.parkings WHERE p.price <= $4) as p\n" +
-      "\t\t\t   WHERE p.distance < $3"
-  try {
-    let result = await client.query(query, [req.query.latitude, req.query.longitude, req.query.maxDistance, req.query.price])
-    res.status(200).json({message:"Success", result: result})
-  }
-  catch(err){
-    console.log(err)
-    res.status(500).json({message: "Error when querying"})
-  }
-})
+
 
 app.get('/reservations/byUser/:userId',async function(req,res){
   const query = "SELECT r.*, p.* FROM public.reservations r, public.parkings p " +
