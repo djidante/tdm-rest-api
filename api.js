@@ -254,8 +254,8 @@ app.get('/reservations/byParking/:parkingId',async function(req,res){
 })
 
 app.post('/reservations',async function(req,res){
-  const query = "INSERT INTO public.reservations (user_reservation, parking_reservation, start_time, end_time, is_over) " +
-      "VALUES ($1, $2, $3, $4, false)"
+  const query = "INSERT INTO public.reservations (user_reservation, parking_reservation, start_time, end_time, is_over, parking_spot) " +
+      "VALUES ($1, $2, $3, $4, false, freespot($2)"
   try{
     let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.startTime,req.body.endTime])
     res.status(200).json({message: "Success"})
