@@ -230,6 +230,10 @@ app.post('/comments', async function(req,res){
     let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.comment])
     res.status(200).json({message:"Success", result: result})
   }
+  catch(err){
+      console.log(err)
+      res.status(500).json({message:"Failure", error:err})
+  }
 })
 
 app.listen(process.env.PORT, () => {
