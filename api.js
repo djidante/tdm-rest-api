@@ -77,7 +77,7 @@ app.post('/login', async function (req, res) {
         res.status(400).json({message: "Invalid email"})
       } else {
         if (bcrypt.compareSync(password, result.rows[0].password)) {
-          res.status(200).json({message: "Login successful", userId: result.rows[0].user_id.toString()})
+          res.status(200).json({message: "Login successful", userId: result.rows[0]})
         } else res.status(400).json({message: "Incorrect password"})
       }
     } catch (err) {
@@ -100,7 +100,7 @@ app.post('/loginWithGoogle', async function (req, res) {
       if (result.rows.length === 0) {
         res.status(400).json({message: "No corresponding Google Account."})
       } else {
-        res.status(200).json({message: "Login successful", userId: result.rows[0].user_id.toString()})
+        res.status(200).json({message: "Login successful", userId: result.rows[0]})
       }
     } catch (err) {
       console.log(err)
