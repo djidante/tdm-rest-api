@@ -245,8 +245,12 @@ app.get('/parkings/closest', async function (req, res ){
 
 
 app.get('/reservations/byUser/:userId',async function(req,res){
-  const query = "SELECT r.*, p.* FROM public.reservations r, public.parkings p " +
-      "WHERE user_reservation = $1 AND is_over = FALSE AND r.parking_reservation = p.parking_id "
+  const query = "SELECT r.reservation_id,r.user_reservation,r.parking_reservation,\n" +
+      "\t\tto_char(r.start_time,'YYYY-MM-DD HH:MI:SS') as start_time,\n" +
+      "\t\tto_char(r.end_time,'YYYY-MM-DD HH:MI:SS') as end_time,\n" +
+      "\t\tr.is_over, r.parking_spot,\n" +
+      "\t\tp.* FROM public.reservations r, public.parkings p\n" +
+      "WHERE user_reservation = $1 AND is_over = FALSE AND r.parking_reservation = p.parking_id"
   try {
     let result = await client.query(query, [req.params.userId])
     res.status(200).json({message:"Success", result: result})
