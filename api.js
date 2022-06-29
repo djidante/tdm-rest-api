@@ -297,7 +297,7 @@ app.put('/reservations',async function(req,res){
 })
 
 app.get('/comments/:parkingId', async function(req,res){
-  const query = "SELECT * FROM public.comments WHERE parking_comment = $1"
+  const query = "SELECT c.*, u.first_name, u.last_name, u.image_url FROM public.comments c, public.users u WHERE c.user_comment = u.user_id AND parking_comment = $1"
   try{
     let result = await client.query(query,[req.params.parkingId])
     res.status(200).json({message:"Success", result: result})
