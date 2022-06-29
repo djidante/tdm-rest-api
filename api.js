@@ -112,7 +112,7 @@ app.post('/loginWithGoogle', async function (req, res) {
 })
 
 app.get('/parkings', async function (req, res){
-  const query = "SELECT *,\n" +
+  const query = "SELECT *, NBAVAILABLE(parking_id) as nb_available \n" +
       "TO_JSON(ARRAY (SELECT \n" +
       "\t   (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS'))\n" +
       "\t   FROM public.schedules\n" +
@@ -135,7 +135,7 @@ app.get('/parkings', async function (req, res){
 
 app.get('/parkings/advanced', async function (req, res ){
   const query =
-      "SELECT * FROM (SELECT *, \n" +
+      "SELECT * FROM (SELECT *, NBAVAILABLE(parking_id) as nb_available \n" +
       "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
       "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
       "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
@@ -180,7 +180,7 @@ app.get('/parkings/advanced', async function (req, res ){
 
 app.get('/parkings/closest', async function (req, res ){
   const query =
-      "SELECT * FROM (SELECT *, \n" +
+      "SELECT * FROM (SELECT *, NBAVAILABLE(parking_id) as nb_available \n" +
       "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
       "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
       "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
