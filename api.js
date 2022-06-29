@@ -254,25 +254,23 @@ app.get('/reservations/byParking/:parkingId',async function(req,res){
 })
 
 app.post('/reservations',async function(req,res){
-  const testQuery = "SELECT p.nb_places ,ps.* FROM \n" +
-      "\t (SELECT \n" +
-      "\t p1.parking_schedule as parking_id, freespot($3) as spot" +
-      "\t p1.day as day_one, p1.opening_hour as opening_day_one, p1.closing_hour as closing_day_one, \n" +
-      "\t p2.day as day_two, p2.opening_hour as opening_day_two, p2.closing_hour as closing_day_two \n" +
-      "\t FROM public.schedules p1 \n" +
-      "\t INNER JOIN public.schedules p2 \n" +
-      "\t\t ON p2.day = (EXTRACT(DOW FROM TIMESTAMP $2)+1) AND p1.parking_schedule = p2.parking_schedule \n" +
-      "\t WHERE p1.day = (EXTRACT(DOW FROM TIMESTAMP $1)+1) as ps, public.parkings p \n" +
-      " WHERE \n" +
-      "\t ($1::time BETWEEN opening_day_one AND closing_day_one) AND \n" +
-      "\t ($2::time BETWEEN opening_day_two AND closing_day_two) AND \n" +
-      "\t (spot <= p.nb_places) AND \n" +
-      "\t ps.parking_schedule = p.parking_id" +
-      "\t parking_id = $3" // $1 day_one, $2 day_two, $3 parking_id
+  const testQuery = "SELECT p.nb_places , ps.* FROM (SELECT \n" +
+      "\t\t\t\t\t\t\t   p1.parking_schedule, freespot($3) as spot,\n" +
+      "\t\t\t\t\t\t\t   p1.day as day_one, p1.opening_hour as opening_day_one, p1.closing_hour as closing_day_one,\n" +
+      "\t\t\t\t\t\t\t   p2.day as day_two, p2.opening_hour as opening_day_two, p2.closing_hour as closing_day_two\n" +
+      "\t\t\t\t\t\t\t   FROM public.schedules p1\n" +
+      "\t\t\t\t\t\t\t   INNER JOIN public.schedules p2 \n" +
+      "\t\t\t\t\t\t\t   \tON p2.day = (EXTRACT(DOW FROM $2::TIMESTAMP )+1) AND p1.parking_schedule = p2.parking_schedule \n" +
+      "\t\t\t\t\t\t\t   WHERE p1.day = (EXTRACT(DOW FROM  $1::TIMESTAMP )+1)) ps, public.parkings p \n" +
+      "\t\t\t\t\t\t\t   WHERE ( $1 ::time BETWEEN opening_day_one AND closing_day_one) \n" +
+      "\t\t\t\t\t\t\t   \t\t\tAND ( $2 ::time BETWEEN opening_day_two AND closing_day_two) \n" +
+      "\t\t\t\t\t\t\t   \t\t\tAND (spot <= p.nb_places) \n" +
+      "\t\t\t\t\t\t\t   \t\t\tAND parking_schedule = p.parking_id \n" +
+      "\t\t\t\t\t\t\t   \t\t\tAND parking_id = $3" // $1 day_one, $2 day_two, $3 parking_id
   const query = "INSERT INTO public.reservations (user_reservation, parking_reservation, start_time, end_time, is_over, parking_spot) " +
-      "VALUES ($1, $2, $3, $4, false, freespot($2)"
+      "VALUES ($1, $2, $3, $4, false, freespot($2))"
   try{
-    let testResult = await client.query(testQuery,[req.body.startTime,req.body.endTime])
+    let testResult = await client.query(testQuery,[req.body.startTime,req.body.endTime,req.body.parkingId])
     if (testResult.rowCount>0){
       let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.startTime,req.body.endTime])
       res.status(200).json({message: "Success"})
@@ -336,6 +334,7 @@ app.post('/evaluations', async function(req,res){
     res.status(500).json({message:"Failure", error:err})
   }
 })
+
 
 app.listen(process.env.PORT, () => {
     console.log(`Example app listening on port $process.env.PORT`)
