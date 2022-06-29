@@ -289,7 +289,7 @@ app.post('/reservations',async function(req,res){
     let testResult = await client.query(testQuery,[req.body.startTime,req.body.endTime,req.body.parkingId])
     if (testResult.rowCount>0){
       let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.startTime,req.body.endTime])
-      let reservationRow = await client.query("SELECT * FROM public.reservations WHERE user_reservation = $1 AND parking_reservation = $2 AND start_time = $3 AND end_time = $4",
+      let reservationRow = await client.query("SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE r.user_reservation = $1 AND r.parking_reservation = $2 AND r.start_time = $3 AND r.end_time = $4 AND p.parking_id=r.parking_reservation",
                                             [req.body.userId,req.body.parkingId,req.body.startTime, req.body.endTime])
       res.status(200).json({message: "Success", result: reservationRow})
     }
