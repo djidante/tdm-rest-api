@@ -53,9 +53,24 @@ app.post('/signup',async function (req, res) {
 app.post('/addGoogleCredential', async function (req, res) {
   const userId = req.body.userId
   const credential = req.body.credential
-  const query = "INSERT INTO public.users (credential) VALUES ($1) WHERE user_id = $2"
+  const query = "UPDATE public.users SET credential = $1 WHERE user_id = $2"
   try {
     let result = await client.query(query, [credential,userId])
+    console.log(result)
+    res.status(200).json({message: "Success"})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({message: "Error when querying"})
+  }
+})
+
+app.post('/addImageUrl', async function (req, res) {
+  const userId = req.body.userId
+  const url = req.body.url
+  const query = "UPDATE public.users SET image_url = $1 WHERE user_id = $2"
+  try {
+    let result = await client.query(query, [url,userId])
     console.log(result)
     res.status(200).json({message: "Success"})
   }
