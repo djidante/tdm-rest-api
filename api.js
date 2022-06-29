@@ -206,7 +206,6 @@ app.get('/parkingsWithAddress/closest',async function (req, res){
       console.log(err)
       res.status(500).json({message: "Error when querying"})
     }
-    res.status(200).json({message:"Success"})
   } catch(err){
     console.log(err)
     res.status(500).json({message:"Error when querying",error:err})
