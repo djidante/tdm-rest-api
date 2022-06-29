@@ -149,6 +149,21 @@ app.get('/parkings', async function (req, res){
   }
 })
 
+app.get('/parkingsWithAddress/closest',async function (req, res){
+  try {
+    let googlePosition = await mapsClient.findPlaceFromText({
+      params: {
+        input: req.query.address,
+        inputtype: textQuery,
+        key: process.env.MAPS_API_KEY
+      }
+    })
+    res.status(200).json({message:"Success",result:googlePosition})
+  } catch(err){
+    res.status(400).json({message:"Failure",error:err})
+  }
+})
+
 app.get('/parkings/advanced', async function (req, res ){
   const query =
       "SELECT * FROM (SELECT *, NBAVAILABLE(parking_id) as nb_available, \n" +
