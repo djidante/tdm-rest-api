@@ -17,6 +17,7 @@ client.connect()
 const bodyParser = require('body-parser')
 const {ssl} = require("pg/lib/defaults");
 const {response} = require("express");
+const {PlaceInputType} = require("@googlemaps/google-maps-services-js");
 const app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -151,16 +152,127 @@ app.get('/parkings', async function (req, res){
 
 app.get('/parkingsWithAddress/closest',async function (req, res){
   try {
-    let googlePosition = await mapsClient.findPlaceFromText({
+    let googlePosition = await mapsClient.geocode({
       params: {
-        input: req.query.address,
-        inputtype: textQuery,
+        address: req.query.address,
         key: process.env.MAPS_API_KEY
       }
     })
-    res.status(200).json({message:"Success",result:googlePosition})
+    let latitude = googlePosition.data.results[0].geometry.location.lat
+    let longitude = googlePosition.data.results[0].geometry.location.lng
+    const query =
+        "SELECT * FROM (SELECT *, NBAVAILABLE(parking_id) as nb_available, \n" +
+        "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
+        "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
+        "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
+        "\t\t\t\t\t\t\t  FROM public.schedules\n" +
+        "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
+        "\t\t\t   FROM public.parkings) as p, (SELECT \n" +
+        "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+        "\t \t parking_evaluation \n" +
+        "\t from public.evaluations \n" +
+        "\t GROUP BY parking_evaluation) as e \n" +
+        "\t\t\t   WHERE p.distance <= 3.0 AND p.parking_id = e.parking_evaluation \n" +
+        "\t\t\t   LIMIT 25"
+    try {
+      let result = await client.query(query, [latitude, longitude])
+      let array= result.rows
+      let arrayLength = array.length
+      let destinations = []
+      let origins = [
+        {lat:latitude,
+          lng:longitude}
+      ]
+      for (let i = 0; i<arrayLength;i++){
+        destinations.push([array[i]["latitude"],array[i]["longitude"]])
+      }
+      if (arrayLength>0) {
+        let googleDistanceMatrix = await mapsClient.distancematrix({
+          params: {
+            destinations: JSON.parse(JSON.stringify(destinations)),
+            origins: JSON.parse(JSON.stringify(origins)),
+            key: process.env.MAPS_API_KEY
+          }})
+        for (let i = 0; i<arrayLength; i++){
+          array[i]["distance"]=googleDistanceMatrix.data.rows[0].elements[i].distance.value/1000
+          array[i]["time"]=googleDistanceMatrix.data.rows[0].elements[i].duration.text
+          array[i]["google_destination"]=googleDistanceMatrix.data.destination_addresses[i]
+        }
+      }
+      result.rows = array.filter(data => data.distance <= 3.0)
+      res.status(200).json({message:"Success", result: result})
+    }
+    catch(err){
+      console.log(err)
+      res.status(500).json({message: "Error when querying"})
+    }
+    res.status(200).json({message:"Success"})
   } catch(err){
-    res.status(400).json({message:"Failure",error:err})
+    console.log(err)
+    res.status(500).json({message:"Error when querying",error:err})
+  }
+})
+
+app.get('/parkingsWithAddress/advanced',async function (req, res){
+  try {
+    let googlePosition = await mapsClient.geocode({
+      params: {
+        address: req.query.address,
+        key: process.env.MAPS_API_KEY
+      }
+    })
+    let latitude = googlePosition.data.results[0].geometry.location.lat
+    let longitude = googlePosition.data.results[0].geometry.location.lng
+    const query =
+        "SELECT * FROM (SELECT *, NBAVAILABLE(parking_id) as nb_available, \n" +
+        "\t\t\t   SQRT( POW( ( (69.1/1.61) * ($1 - latitude)), 2)\n" +
+        "               + POW(( (53/1.61) * ($2 - longitude)), 2)) AS distance,\n" +
+        "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
+        "\t\t\t\t\t\t\t  FROM public.schedules\n" +
+        "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
+        "\t\t\t   FROM public.parkings WHERE price <= $4) as p, (SELECT \n" +
+        "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+        "\t \t parking_evaluation \n" +
+        "\t from public.evaluations \n" +
+        "\t GROUP BY parking_evaluation) as e \n" +
+        "\t\t\t   WHERE p.distance <= $3 AND p.parking_id = e.parking_evaluation" +
+        "\t\t\t   LIMIT 25"
+    try {
+      let result = await client.query(query, [latitude, longitude, req.query.maxDistance, req.query.price])
+      let array= result.rows
+      let arrayLength = array.length
+      let destinations = []
+      let origins = [
+        {lat:latitude,
+          lng:longitude}
+      ]
+      for (let i = 0; i<arrayLength;i++){
+        destinations.push([array[i]["latitude"],array[i]["longitude"]])
+      }
+      if (arrayLength>0) {
+        let googleDistanceMatrix = await mapsClient.distancematrix({
+          params: {
+            destinations: JSON.parse(JSON.stringify(destinations)),
+            origins: JSON.parse(JSON.stringify(origins)),
+            key: process.env.MAPS_API_KEY
+          }})
+        for (let i = 0; i<arrayLength; i++){
+          array[i]["distance"]=googleDistanceMatrix.data.rows[0].elements[i].distance.value/1000
+          array[i]["time"]=googleDistanceMatrix.data.rows[0].elements[i].duration.text
+          array[i]["google_destination"]=googleDistanceMatrix.data.destination_addresses[i]
+        }
+      }
+      result.rows = array.filter(data => data.distance <= 3.0)
+      res.status(200).json({message:"Success", result: result})
+    }
+    catch(err){
+      console.log(err)
+      res.status(500).json({message: "Error when querying"})
+    }
+    res.status(200).json({message:"Success"})
+  } catch(err){
+    console.log(err)
+    res.status(500).json({message:"Error when querying",error:err})
   }
 })
 
