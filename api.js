@@ -289,7 +289,7 @@ app.post('/reservations',async function(req,res){
     let testResult = await client.query(testQuery,[req.body.startTime,req.body.endTime,req.body.parkingId])
     if (testResult.rowCount>0){
       let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.startTime,req.body.endTime])
-      res.status(200).json({message: "Success"})
+      res.status(200).json({message: "Success", reservation: result})
     }
     else res.status(400).json({message: "Parking is either closed at check-in/check-out, or currently full"})
   }
