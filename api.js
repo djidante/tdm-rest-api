@@ -174,7 +174,7 @@ app.get('/parkingsWithAddress/closest',async function (req, res){
         "\t GROUP BY parking_evaluation) as e \n" +
         "\t\t\t   WHERE p.distance <= 3.0 AND p.parking_id = e.parking_evaluation \n" +
         "\t\t\t   LIMIT 25"
-    try {
+
       let result = await client.query(query, [latitude, longitude])
       let array= result.rows
       let arrayLength = array.length
@@ -202,11 +202,7 @@ app.get('/parkingsWithAddress/closest',async function (req, res){
       result.rows = array.filter(data => data.distance <= 3.0)
       res.status(200).json({message:"Success", result: result})
     }
-    catch(err){
-      console.log(err)
-      res.status(500).json({message: "Error when querying"})
-    }
-  } catch(err){
+   catch(err){
     console.log(err)
     res.status(500).json({message:"Error when querying",error:err})
   }
@@ -236,7 +232,6 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
         "\t GROUP BY parking_evaluation) as e \n" +
         "\t\t\t   WHERE p.distance <= $3 AND p.parking_id = e.parking_evaluation" +
         "\t\t\t   LIMIT 25"
-    try {
       let result = await client.query(query, [latitude, longitude, req.query.maxDistance, req.query.price])
       let array= result.rows
       let arrayLength = array.length
@@ -263,12 +258,7 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
       }
       result.rows = array.filter(data => data.distance <= 3.0)
       res.status(200).json({message:"Success", result: result})
-    }
-    catch(err){
-      console.log(err)
-      res.status(500).json({message: "Error when querying"})
-    }
-    res.status(200).json({message:"Success"})
+
   } catch(err){
     console.log(err)
     res.status(500).json({message:"Error when querying",error:err})
