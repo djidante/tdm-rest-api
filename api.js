@@ -284,13 +284,13 @@ app.post('/reservations',async function(req,res){
       "\t\t\t\t\t\t\t   \t\t\tAND parking_schedule = p.parking_id \n" +
       "\t\t\t\t\t\t\t   \t\t\tAND parking_id = $3" // $1 day_one, $2 day_two, $3 parking_id
   const query = "INSERT INTO public.reservations (user_reservation, parking_reservation, start_time, end_time, is_over, parking_spot) " +
-      "VALUES ($1, $2, $3, $4, false, freespot($2))"
+      "VALUES ($1, $2, $3, $4, false, freespot($2)) RETURNING reservation_id"
   try{
     let testResult = await client.query(testQuery,[req.body.startTime,req.body.endTime,req.body.parkingId])
     if (testResult.rowCount>0){
       let result = await client.query(query,[req.body.userId,req.body.parkingId,req.body.startTime,req.body.endTime])
-      let reservationRow = await client.query("SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE r.user_reservation = $1 AND r.parking_reservation = $2 AND r.start_time = $3 AND r.end_time = $4 AND p.parking_id=r.parking_reservation",
-                                            [req.body.userId,req.body.parkingId,req.body.startTime, req.body.endTime])
+      let reservationRow = await client.query("SELECT r.*, p.* FROM public.reservations r, public.parkings p WHERE r.reservation_id = $1 AND p.parking_id=r.parking_reservation",
+                                            [result.rows[0].reservation_id])
       res.status(200).json({message: "Success", result: reservationRow})
     }
     else res.status(400).json({message: "Parking is either closed at check-in/check-out, or currently full"})
