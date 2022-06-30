@@ -226,7 +226,7 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
         "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
         "\t\t\t\t\t\t\t  FROM public.schedules\n" +
         "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-        "\t\t\t   FROM public.parkings WHERE price <= $4) as p LEFT JOIN (SELECT \n" +
+        "\t\t\t   FROM public.parkings WHERE p.price <= $4) as p LEFT JOIN (SELECT \n" +
         "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
         "\t \t parking_evaluation \n" +
         "\t from public.evaluations \n" +
@@ -258,7 +258,7 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
           array[i]["google_destination"]=googleDistanceMatrix.data.destination_addresses[i]
         }
       }
-      result.rows = array.filter(data => data.distance <= 3.0)
+      result.rows = array.filter(data => data.distance <= req.query.maxDistance)
       res.status(200).json({message:"Success", result: result})
 
   } catch(err){
