@@ -226,13 +226,13 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
         "\t\t\t   TO_JSON(ARRAY (SELECT (day,to_char(opening_hour, 'HH24:MI:SS'),to_char(closing_hour,'HH24:MI:SS')) \n" +
         "\t\t\t\t\t\t\t  FROM public.schedules\n" +
         "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
-        "\t\t\t   FROM public.parkings WHERE price <= $4) as p LEFT JOIN (SELECT \n" +
+        "\t\t\t   FROM public.parkings) as p LEFT JOIN (SELECT \n" +
         "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
         "\t \t parking_evaluation \n" +
         "\t from public.evaluations \n" +
         "\t GROUP BY parking_evaluation) as e \n" +
         "\t\t\t   ON p.parking_id = e.parking_evaluation \n" +
-        "\t\t\t   WHERE p.distance <= $3 \n" +
+        "\t\t\t   WHERE p.distance <= $3 AND p.price <= $4 \n" +
         "\t\t\t   LIMIT 25"
       let result = await client.query(query, [latitude, longitude, req.query.maxDistance, req.query.price])
       let array= result.rows
