@@ -135,7 +135,7 @@ app.get('/parkings', async function (req, res){
       "\t   FROM public.schedules\n" +
       "\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "FROM public.parkings p, (SELECT \n" +
-      "\t \tAVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+      "\t \tCOALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
       "\t \tparking_evaluation \n" +
       "\t from public.evaluations \n" +
       "\t GROUP BY parking_evaluation) as e \n" +
@@ -168,7 +168,7 @@ app.get('/parkingsWithAddress/closest',async function (req, res){
         "\t\t\t\t\t\t\t  FROM public.schedules\n" +
         "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
         "\t\t\t   FROM public.parkings) as p, (SELECT \n" +
-        "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+        "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
         "\t \t parking_evaluation \n" +
         "\t from public.evaluations \n" +
         "\t GROUP BY parking_evaluation) as e \n" +
@@ -226,7 +226,7 @@ app.get('/parkingsWithAddress/advanced',async function (req, res){
         "\t\t\t\t\t\t\t  FROM public.schedules\n" +
         "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
         "\t\t\t   FROM public.parkings WHERE price <= $4) as p, (SELECT \n" +
-        "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+        "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
         "\t \t parking_evaluation \n" +
         "\t from public.evaluations \n" +
         "\t GROUP BY parking_evaluation) as e \n" +
@@ -274,7 +274,7 @@ app.get('/parkings/advanced', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings WHERE price <= $4) as p, (SELECT \n" +
-      "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+      "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
       "\t \t parking_evaluation \n" +
       "\t from public.evaluations \n" +
       "\t GROUP BY parking_evaluation) as e \n" +
@@ -319,7 +319,7 @@ app.get('/parkings/closest', async function (req, res ){
       "\t\t\t\t\t\t\t  FROM public.schedules\n" +
       "\t\t\t\t\t\t\t  WHERE parking_schedule = parking_id)) as schedule\n" +
       "\t\t\t   FROM public.parkings) as p, (SELECT \n" +
-      "\t \t AVG(evaluation)::numeric(2,1)::text as evaluation, \n" +
+      "\t \t COALESCE(AVG(evaluation),0)::numeric(2,1)::text as evaluation, \n" +
       "\t \t parking_evaluation \n" +
       "\t from public.evaluations \n" +
       "\t GROUP BY parking_evaluation) as e \n" +
